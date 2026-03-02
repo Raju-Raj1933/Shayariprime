@@ -97,8 +97,7 @@ PostSchema.index({ type: 1, status: 1, category: 1, views: -1, createdAt: -1 });
 // User dashboard: posts by author, filtered by status
 PostSchema.index({ author: 1, status: 1, createdAt: -1 });
 
-// Slug lookups (unique already, but explicit index for fast reads)
-PostSchema.index({ slug: 1 });
+// (slug index is already created by unique: true on the field)
 
 // Views sorting (for trending/popular)
 PostSchema.index({ views: -1 });

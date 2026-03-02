@@ -1,13 +1,21 @@
-import NextAuth from "next-auth";
-import { authConfig } from "./auth.config";
 import { NextResponse } from "next/server";
+import { NextRequest } from "next/server";
+import { getToken } from "next-auth/jwt";
 
-const { auth } = NextAuth(authConfig);
+export async function middleware(req: NextRequest) {
+    const isProduction = process.env.NODE_ENV === "production";
 
-export default auth((req) => {
+    // getToken uses secureCookie option to correctly read NextAuth v5's __Secure- prefix
+    const token = await getToken({
+        req,
+        secret: process.env.AUTH_SECRET || process.env.NEXTAUTH_SECRET,
+        secureCookie: isProduction,
+        salt: isProduction ? "__Secure-authjs.session-token" : "authjs.session-token"
+    });
+
     const { pathname } = req.nextUrl;
-    const isLoggedIn = !!req.auth;
-    const isAdmin = (req.auth?.user as { role?: string })?.role === "admin";
+    const isLoggedIn = !!token;
+    const isAdmin = token?.role === "admin";
 
     // Admin-only routes
     if (pathname.startsWith("/dashboard")) {
@@ -36,7 +44,7 @@ export default auth((req) => {
     }
 
     return NextResponse.next();
-});
+}
 
 export const config = {
     matcher: ["/dashboard/:path*", "/add-post/:path*", "/my-dashboard/:path*"],
