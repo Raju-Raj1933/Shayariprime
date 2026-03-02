@@ -118,7 +118,7 @@ export default function ShayariCard({
 
     return (
         <div
-            className="flex flex-col h-full relative kv-card-in"
+            className={`flex flex-col h-full relative kv-card-in ${showComments ? 'z-50' : 'z-0'}`}
             style={{ animationDelay: `${Math.min(index * 80, 500)}ms` }}
             aria-label={`${post.type === "kavita" ? "Kavita" : "Shayari"}: ${post.title}`}
         >

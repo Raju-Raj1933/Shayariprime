@@ -1,19 +1,13 @@
-import { NextRequest, NextResponse } from "next/server";
-import { getToken } from "next-auth/jwt";
+import NextAuth from "next-auth";
+import { authConfig } from "./auth.config";
+import { NextResponse } from "next/server";
 
-/**
- * Middleware uses `getToken` from `next-auth/jwt` — this ONLY reads & verifies
- * the JWT cookie, with no MongoDB or bcryptjs import → fully edge-safe.
- */
-export async function middleware(req: NextRequest) {
-    const token = await getToken({
-        req,
-        secret: process.env.NEXTAUTH_SECRET,
-    });
+const { auth } = NextAuth(authConfig);
 
+export default auth((req) => {
     const { pathname } = req.nextUrl;
-    const isLoggedIn = !!token;
-    const isAdmin = token?.role === "admin";
+    const isLoggedIn = !!req.auth;
+    const isAdmin = (req.auth?.user as { role?: string })?.role === "admin";
 
     // Admin-only routes
     if (pathname.startsWith("/dashboard")) {
@@ -42,7 +36,7 @@ export async function middleware(req: NextRequest) {
     }
 
     return NextResponse.next();
-}
+});
 
 export const config = {
     matcher: ["/dashboard/:path*", "/add-post/:path*", "/my-dashboard/:path*"],

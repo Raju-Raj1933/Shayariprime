@@ -23,7 +23,7 @@ function getFromAddress(): string {
 export async function sendVerificationEmail(to: string, token: string): Promise<void> {
   const resend = getResend();
   const from = getFromAddress();
-  const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
+  const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "https://shayariprime.com";
   const link = `${baseUrl}/verify?token=${token}`;
 
   const html = `
@@ -72,7 +72,7 @@ export async function sendVerificationEmail(to: string, token: string): Promise<
 export async function sendResetPasswordEmail(to: string, token: string): Promise<void> {
   const resend = getResend();
   const from = getFromAddress();
-  const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
+  const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "https://shayariprime.com";
   const link = `${baseUrl}/reset-password?token=${token}`;
 
   const html = `
