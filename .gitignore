@@ -39,3 +39,10 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# Project specific & sensitive files
+.env.local
+.env.*
+DOCUMENTATION.md
+tsc-errors.txt
+*.log

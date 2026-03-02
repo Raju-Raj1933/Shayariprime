@@ -1,26 +1,613 @@
 @import "tailwindcss";
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
-
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
-
-@media (prefers-color-scheme: dark) {
+@layer base {
   :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+    --color-primary: #7c3aed;
+    --color-primary-light: #a78bfa;
+    --color-primary-dark: #5b21b6;
+    --color-accent: #ec4899;
+    --color-accent-light: #f9a8d4;
+    --color-bg: #0f0a1e;
+    --color-bg-card: #1a1030;
+    --color-bg-glass: rgba(26, 16, 48, 0.7);
+    --color-text: #f0e6ff;
+    --color-text-muted: #b49deb;
+    --color-border: rgba(124, 58, 237, 0.25);
+  }
+
+  * {
+    box-sizing: border-box;
+  }
+
+  html {
+    scroll-behavior: smooth;
+  }
+
+  body {
+    background-color: var(--color-bg);
+    color: var(--color-text);
+    /* Use next/font CSS variable for zero font-request overhead */
+    font-family: var(--font-inter), system-ui, -apple-system, sans-serif;
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* Custom scrollbar */
+  ::-webkit-scrollbar {
+    width: 6px;
+  }
+
+  ::-webkit-scrollbar-track {
+    background: #0f0a1e;
+  }
+
+  ::-webkit-scrollbar-thumb {
+    background: #7c3aed;
+    border-radius: 3px;
+  }
+
+  ::-webkit-scrollbar-thumb:hover {
+    background: #a78bfa;
+  }
+
+  /* Google Fonts loaded via next/font/google in layout.tsx — NO @import needed here */
+}
+
+@layer components {
+
+  /* Glassmorphism */
+  .glass {
+    background: var(--color-bg-glass);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border: 1px solid var(--color-border);
+  }
+
+  /* Gradient text */
+  .gradient-text {
+    background: linear-gradient(135deg, #a78bfa 0%, #ec4899 50%, #f59e0b 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  /* Card hover effect */
+  .card-hover {
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+  }
+
+  .card-hover:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 20px 60px rgba(124, 58, 237, 0.3);
+  }
+
+  /* Watermark */
+  .watermark-card {
+    position: relative;
+    overflow: hidden;
+  }
+
+
+
+
+  /* Category badge — contrast ratio ≥ 4.5:1 (WCAG AA) */
+  /* Category badge — contrast ratio ≥ 4.5:1 (WCAG AA) */
+  .badge-sad {
+    background-color: #1a3a7a;
+    background-image: linear-gradient(135deg, #1e3a5f, #1a3a7a);
+    color: #bfdbfe;
+    /* blue-300 — contrast ~6.1:1 on dark bg */
+    border: 1px solid rgba(147, 197, 253, 0.35);
+    font-weight: 600;
+  }
+
+  .badge-romantic {
+    background-color: #831a72;
+    background-image: linear-gradient(135deg, #500a47, #831a72);
+    color: #fbcfe8;
+    /* pink-200 — contrast ~6.5:1 on dark bg */
+    border: 1px solid rgba(249, 168, 212, 0.35);
+    font-weight: 600;
+  }
+
+  .badge-motivational {
+    background-color: #7c5200;
+    background-image: linear-gradient(135deg, #422a00, #7c5200);
+    color: #fde68a;
+    /* yellow-200 — contrast ~7.2:1 on dark bg */
+    border: 1px solid rgba(252, 211, 77, 0.35);
+    font-weight: 600;
+  }
+
+  /* Shayari / Poetry text — uses Devanagari variable, falls back to Georgia */
+  .shayari-text {
+    font-family: var(--font-devanagari), Georgia, serif;
+    line-height: 1.9;
+    letter-spacing: 0.02em;
+  }
+
+  /* Card content face — fills grid cell height via flex-1 */
+  .card-content-face {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+  }
+
+  /* Action bar always at bottom of content face */
+  .card-action-bar {
+    margin-top: auto;
+  }
+
+  /* Comment panel — absolutely positioned BELOW the card;
+     does NOT participate in grid row height calculation,
+     so sibling cards are NEVER affected when it opens */
+  .card-comment-panel {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    z-index: 30;
+    margin-top: 6px;
+  }
+
+  /* Static gradient background — animation removed (non-composited background-position hurts LH) */
+  .bg-animated {
+    background: linear-gradient(-45deg, #0f0a1e, #1a0a2e, #0d1a3a, #1a0a2e);
+  }
+
+  /* Button styles */
+  .btn-primary {
+    background: linear-gradient(135deg, #7c3aed, #ec4899);
+    color: white;
+    border: none;
+    padding: 0.65rem 1.5rem;
+    border-radius: 9999px;
+    font-weight: 600;
+    font-size: 0.875rem;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+
+  .btn-primary:hover {
+    opacity: 0.9;
+    transform: translateY(-1px);
+    box-shadow: 0 8px 24px rgba(124, 58, 237, 0.4);
+  }
+
+  .btn-ghost {
+    background: transparent;
+    color: var(--color-text-muted);
+    border: 1px solid var(--color-border);
+    padding: 0.65rem 1.25rem;
+    border-radius: 9999px;
+    font-weight: 500;
+    font-size: 0.875rem;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+
+  .btn-ghost:hover {
+    background: rgba(124, 58, 237, 0.15);
+    color: var(--color-text);
+    border-color: rgba(124, 58, 237, 0.5);
+  }
+
+  /* Input styles */
+  .input-field {
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid var(--color-border);
+    color: var(--color-text);
+    padding: 0.75rem 1rem;
+    border-radius: 12px;
+    width: 100%;
+    font-size: 0.9rem;
+    transition: border-color 0.3s ease, box-shadow 0.3s ease;
+    outline: none;
+  }
+
+  .input-field::placeholder {
+    color: var(--color-text-muted);
+  }
+
+  .input-field:focus {
+    border-color: #7c3aed;
+    box-shadow: 0 0 0 3px rgba(124, 58, 237, 0.15);
+  }
+
+  /* Grid responsive */
+  .cards-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 1.5rem;
+    align-items: stretch;
+    max-width: 1280px;
+    margin-inline: auto;
+    width: 100%;
+  }
+
+  @media (min-width: 640px) {
+    .cards-grid {
+      grid-template-columns: repeat(2, 1fr);
+    }
+  }
+
+  @media (min-width: 1024px) {
+    .cards-grid {
+      grid-template-columns: repeat(3, 1fr);
+    }
+  }
+
+  /* ── Card image border — static gradient (removed animation for performance) ── */
+  /* Animated conic-gradient caused non-composited animation and forced reflow */
+  .card-image-gradient-border {
+    padding: 3px;
+    background: linear-gradient(135deg, #7c3aed, #ec4899, #f59e0b, #06b6d4, #a78bfa);
+    box-shadow: 0 0 14px rgba(124, 58, 237, 0.35);
+  }
+
+  /* ── Card fade-in animation — GPU-composited (opacity + transform only) ── */
+  @keyframes kv-card-in {
+    from {
+      opacity: 0;
+      transform: translateY(24px);
+    }
+
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  .kv-card-in {
+    animation: kv-card-in 0.45s ease-out both;
+    will-change: transform;
+  }
+
+  /* Comment panel slide-in — composited */
+  @keyframes kv-slide-down {
+    from {
+      opacity: 0;
+      transform: translateY(-8px);
+    }
+
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  .kv-comment-slide {
+    animation: kv-slide-down 0.2s ease-out both;
+  }
+
+  /* Shimmer — GPU-composited opacity pulse (background-position was not compositable) */
+  .shimmer {
+    background: linear-gradient(90deg, #1a1030 25%, #2d1f50 50%, #1a1030 75%);
+    animation: shimmer-pulse 1.5s ease-in-out infinite;
+  }
+
+  @keyframes shimmer-pulse {
+
+    0%,
+    100% {
+      opacity: 0.6;
+    }
+
+    50% {
+      opacity: 1;
+    }
+  }
+
+  /* Solid color: browser registers LCP immediately (no gradient engine delay) */
+  .kavita-hero-title {
+    color: #c084fc;
+    filter: drop-shadow(0 0 24px rgba(192, 132, 252, 0.25));
+  }
+
+  .kavita-section-heading {
+    background: linear-gradient(90deg, #e9d5ff 0%, #a78bfa 60%, #ec4899 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  .kavita-card-wrap:hover .kavita-content-card {
+    border-color: rgba(167, 139, 250, 0.35);
+    box-shadow: 0 8px 32px rgba(124, 58, 237, 0.2), inset 0 1px 0 rgba(167, 139, 250, 0.15);
+    transition: all 0.3s ease;
+  }
+
+  .kavita-img-block:focus-visible {
+    outline: 2px solid #a78bfa;
+    outline-offset: 2px;
+    border-radius: 18px;
   }
 }
 
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+/* ═══════════════════════════════════════════════════════════════════
+   KOTA FACTORY MONOCHROME THEME — .kavita-bw
+   Scoped entirely. Homepage and shayari pages are 100% unaffected.
+═══════════════════════════════════════════════════════════════════ */
+.kavita-bw {
+  /* Custom properties for the theme */
+  --kv-bg: #0b0b0b;
+  --kv-bg-elevated: #141414;
+  --kv-bg-card: #111111;
+  --kv-bg-card-hover: #1a1a1a;
+  --kv-border: rgba(255, 255, 255, 0.08);
+  --kv-border-mid: rgba(255, 255, 255, 0.14);
+  --kv-border-bright: rgba(255, 255, 255, 0.24);
+  --kv-text: #f0ece6;
+  --kv-text-sub: #b0aba5;
+  --kv-text-muted: #A1A1A1;
+  --kv-accent: #f0ece6;
+  --kv-red: #80A0E0;
+  --kv-red-dim: rgba(224, 52, 52, 0.18);
+  --kv-white-glow: rgba(255, 255, 255, 0.06);
+
+  /* Override global background */
+  position: relative;
+  background-color: var(--kv-bg);
+  color: var(--kv-text);
+  min-height: 100vh;
+}
+
+/* Subdued background for BW theme */
+.kavita-bw {
+  background-color: var(--color-bg);
+}
+
+/* ── Monochrome Hero title — solid white for instant LCP paint ───── */
+.kavita-bw .kavita-hero-title {
+  /* No gradient on initial paint → LCP element paints immediately with system font */
+  color: #f0ece6;
+  background: none;
+  -webkit-text-fill-color: #f0ece6;
+  background-clip: unset;
+  filter: none;
+  letter-spacing: -0.02em;
+}
+
+/* ── Section heading ─────────────────────────────────────── */
+.kavita-bw .kavita-section-heading {
+  background: none;
+  -webkit-text-fill-color: var(--kv-text);
+  color: var(--kv-text);
+  font-family: monospace;
+  letter-spacing: 0.04em;
+}
+
+/* ── Category filter pills ───────────────────────────────── */
+.kavita-bw .kv-pill {
+  background: var(--kv-bg-elevated);
+  border: 1px solid var(--kv-border-mid);
+  color: var(--kv-text-sub);
+  transition: all 0.2s;
+}
+
+.kavita-bw .kv-pill:hover,
+.kavita-bw .kv-pill-active {
+  background: var(--kv-white-glow);
+  border-color: var(--kv-border-bright);
+  color: var(--kv-accent);
+  box-shadow: 0 0 12px rgba(255, 255, 255, 0.07);
+}
+
+/* ── Kavita-bw card border — static gradient, no animation ── */
+.kavita-bw .card-image-gradient-border {
+  background: linear-gradient(135deg, #333, #888, #ddd, #888, #333);
+  box-shadow: 0 0 10px rgba(255, 255, 255, 0.06);
+  animation: none;
+}
+
+/* ── Kavita content card ─────────────────────────────────── */
+.kavita-bw .kavita-content-card {
+  background: var(--kv-bg-card) !important;
+  border: 1px solid var(--kv-border) !important;
+  box-shadow: 0 2px 16px rgba(0, 0, 0, 0.5) !important;
+  transition: border-color 0.3s, box-shadow 0.3s;
+}
+
+.kavita-bw .kavita-card-wrap:hover .kavita-content-card {
+  border-color: var(--kv-border-mid) !important;
+  box-shadow: 0 6px 28px rgba(0, 0, 0, 0.6), 0 0 20px rgba(255, 255, 255, 0.04) !important;
+}
+
+/* Card title */
+.kavita-bw .kv-card-title a {
+  color: var(--kv-text) !important;
+}
+
+.kavita-bw .kv-card-title a:hover {
+  color: var(--kv-red) !important;
+}
+
+/* Card excerpt */
+.kavita-bw .kv-card-excerpt {
+  color: var(--kv-text-sub) !important;
+  border-left-color: var(--kv-border-mid) !important;
+  font-family: var(--font-devanagari), Georgia, serif;
+}
+
+/* Read More link — red pen marker style */
+.kavita-bw .kv-read-more {
+  color: var(--kv-red);
+  font-family: monospace;
+  font-size: 0.75rem;
+  letter-spacing: 0.05em;
+  text-decoration: underline;
+  text-decoration-style: dotted;
+  text-underline-offset: 3px;
+}
+
+.kavita-bw .kv-read-more:hover {
+  text-decoration-style: solid;
+}
+
+/* Action bar */
+.kavita-bw .card-action-bar {
+  border-color: var(--kv-border) !important;
+}
+
+/* Category badges in BW — keep the color-coded border so category is visually distinct,
+   but desaturate partially for the monochrome feel */
+.kavita-bw .badge-sad {
+  background: rgba(30, 58, 95, 0.6);
+  color: #93c5fd;
+  /* blue — contrast 5.8:1 on #111 */
+  border: 1px solid rgba(147, 197, 253, 0.45);
+  font-weight: 600;
+}
+
+.kavita-bw .badge-romantic {
+  background: rgba(80, 10, 71, 0.6);
+  color: #f9a8d4;
+  /* pink — contrast 6.1:1 on #111 */
+  border: 1px solid rgba(249, 168, 212, 0.45);
+  font-weight: 600;
+}
+
+.kavita-bw .badge-motivational {
+  background: rgba(66, 42, 0, 0.6);
+  color: #fde68a;
+  /* amber — contrast 7.0:1 on #111 */
+  border: 1px solid rgba(252, 211, 77, 0.45);
+  font-weight: 600;
+}
+
+.kavita-bw .badge-sad:hover,
+.kavita-bw .badge-romantic:hover,
+.kavita-bw .badge-motivational:hover {
+  opacity: 0.85;
+  text-decoration: underline;
+}
+
+/* ── Detail page article ─────────────────────────────────── */
+.kavita-bw .kv-article-card {
+  background: var(--kv-bg-card) !important;
+  border: 1px solid var(--kv-border-mid) !important;
+  box-shadow: none !important;
+  position: relative;
+}
+
+/* "Blackboard" poem content block */
+.kavita-bw .kv-poem-block {
+  background: #060606 !important;
+  border: 1px solid var(--kv-border-mid) !important;
+  border-left: 3px solid #555 !important;
+  box-shadow: inset 0 2px 12px rgba(0, 0, 0, 0.6) !important;
+}
+
+/* Poem text itself — chalk on blackboard feel */
+.kavita-bw .kv-poem-text {
+  color: #e8e4de !important;
+  font-family: var(--font-devanagari), Georgia, serif !important;
+  line-height: 2.1 !important;
+  letter-spacing: 0.015em !important;
+  text-shadow: 0 0 12px rgba(232, 228, 222, 0.08) !important;
+}
+
+/* Breadcrumb */
+.kavita-bw .kv-breadcrumb {
+  color: var(--kv-text-muted) !important;
+}
+
+.kavita-bw .kv-breadcrumb a {
+  color: var(--kv-text-muted) !important;
+}
+
+.kavita-bw .kv-breadcrumb a:hover {
+  color: var(--kv-text) !important;
+}
+
+.kavita-bw .kv-breadcrumb-current {
+  color: var(--kv-text-sub) !important;
+}
+
+/* Prev/Next nav */
+.kavita-bw .kv-nav-card {
+  background: var(--kv-bg-card) !important;
+  border: 1px solid var(--kv-border) !important;
+  box-shadow: none !important;
+}
+
+.kavita-bw .kv-nav-card:hover {
+  border-color: var(--kv-border-mid) !important;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4) !important;
+}
+
+.kavita-bw .kv-nav-card .kv-nav-label {
+  color: var(--kv-text-muted) !important;
+}
+
+.kavita-bw .kv-nav-card .kv-nav-title {
+  color: var(--kv-text-sub) !important;
+}
+
+.kavita-bw .kv-nav-card:hover .kv-nav-title {
+  color: var(--kv-text) !important;
+}
+
+/* Related posts */
+.kavita-bw .kv-related-card {
+  background: var(--kv-bg-card) !important;
+  border: 1px solid var(--kv-border) !important;
+}
+
+.kavita-bw .kv-related-card:hover {
+  border-color: var(--kv-border-mid) !important;
+}
+
+.kavita-bw .kv-related-title {
+  color: var(--kv-text) !important;
+}
+
+.kavita-bw .kv-related-excerpt {
+  color: var(--kv-text-muted) !important;
+}
+
+/* Social share in BW */
+.kavita-bw .kv-share-btn {
+  filter: grayscale(1);
+  opacity: 0.75;
+  transition: filter 0.2s, opacity 0.2s;
+}
+
+.kavita-bw .kv-share-btn:hover {
+  filter: grayscale(0);
+  opacity: 1;
+}
+
+/* "Marker underline" accent for h1 on detail page */
+.kavita-bw .kv-detail-h1 {
+  color: var(--kv-text);
+  font-family: var(--font-devanagari), serif;
+  background: none;
+  -webkit-text-fill-color: var(--kv-text);
+  letter-spacing: -0.01em;
+  text-decoration: underline;
+  text-decoration-color: var(--kv-red);
+  text-decoration-thickness: 3px;
+  text-underline-offset: 6px;
+  text-decoration-style: solid;
+}
+
+/* Focus ring for image blocks */
+.kavita-bw .kavita-img-block:focus-visible {
+  outline: 2px solid rgba(255, 255, 255, 0.4);
+  outline-offset: 2px;
+  border-radius: 18px;
+}
+
+/* SEO text block at the bottom */
+.kavita-bw .kv-seo-block {
+  background: var(--kv-bg-elevated) !important;
+  border: 1px solid var(--kv-border) !important;
+  box-shadow: none !important;
 }
