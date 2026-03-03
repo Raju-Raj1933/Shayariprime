@@ -1,7 +1,6 @@
 "use client";
 
 import { useState, useTransition } from "react";
-import { motion } from "framer-motion";
 import { Mail, Feather, ArrowLeft, Send } from "lucide-react";
 import toast from "react-hot-toast";
 import Link from "next/link";
@@ -39,12 +38,7 @@ export default function ForgotPasswordPage() {
 
     return (
         <div className="min-h-[80vh] flex items-center justify-center px-4 py-12">
-            <motion.div
-                initial={{ opacity: 0, y: 24 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.5 }}
-                className="w-full max-w-md"
-            >
+            <div className="w-full max-w-md kv-card-in">
                 <div className="glass rounded-3xl p-8 md:p-10" style={{ border: "1px solid rgba(124,58,237,0.25)" }}>
                     {/* Logo */}
                     <div className="text-center mb-8">
@@ -58,11 +52,7 @@ export default function ForgotPasswordPage() {
                     </div>
 
                     {submitted ? (
-                        <motion.div
-                            initial={{ opacity: 0, scale: 0.95 }}
-                            animate={{ opacity: 1, scale: 1 }}
-                            className="text-center"
-                        >
+                        <div className="text-center kv-card-in">
                             <div className="text-4xl mb-4">📬</div>
                             <p className="text-sm mb-6" style={{ color: "var(--color-text-muted)", lineHeight: 1.7 }}>
                                 If an account with <strong style={{ color: "var(--color-accent)" }}>{email}</strong> exists,
@@ -73,7 +63,7 @@ export default function ForgotPasswordPage() {
                             <Link href="/login" className="btn-primary inline-flex items-center gap-2 justify-center py-2.5 px-6 text-sm">
                                 <ArrowLeft size={16} /> Back to Login
                             </Link>
-                        </motion.div>
+                        </div>
                     ) : (
                         <form onSubmit={handleSubmit} className="space-y-4" noValidate>
                             <div className="relative">
@@ -107,7 +97,7 @@ export default function ForgotPasswordPage() {
                         </form>
                     )}
                 </div>
-            </motion.div>
+            </div>
         </div>
     );
 }

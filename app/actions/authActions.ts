@@ -104,11 +104,14 @@ export async function registerUser(
             { expiresIn: "15m" }
         );
 
-        // Non-blocking: send email and handle failure without crashing registration
-        sendVerificationEmail(email, verificationToken).catch((err: unknown) => {
-            // Log to Vercel/server logs for debugging — never expose to client
+        // Awaited: must complete before returning so Vercel doesn't kill the function
+        // before Resend receives the HTTP call (fire-and-forget is unsafe on serverless)
+        try {
+            await sendVerificationEmail(email, verificationToken);
+        } catch (err) {
+            // Log error but still return success — user can re-request verification
             console.error("[email] Failed to send verification email to", email, err);
-        });
+        }
 
         return { success: true };
     } catch (error) {
@@ -148,11 +151,14 @@ export async function forgotPassword(rawEmail: string): Promise<{ success: boole
         user.resetPasswordExpires = expires;
         await user.save();
 
-        // Non-blocking
-        sendResetPasswordEmail(email, rawToken).catch((err: unknown) => {
-            // Log to Vercel/server logs for debugging
+        // Awaited: must complete before returning so Vercel doesn't kill the function
+        // before Resend receives the HTTP call (fire-and-forget is unsafe on serverless)
+        try {
+            await sendResetPasswordEmail(email, rawToken);
+        } catch (err) {
             console.error("[email] Failed to send reset email to", email, err);
-        });
+            // Still return genericResponse — don't reveal failure to prevent enumeration
+        }
 
         return genericResponse;
     } catch {
