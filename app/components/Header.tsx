@@ -14,7 +14,10 @@ import {
     X,
     Feather,
 } from "lucide-react";
-import AdminVerifyModal from "@/app/components/AdminVerifyModal";
+import dynamic from "next/dynamic";
+
+// Lazy-loaded: only admins ever see this — no need to ship it to everyone on every page
+const AdminVerifyModal = dynamic(() => import("@/app/components/AdminVerifyModal"), { ssr: false });
 
 export default function Header() {
     const { data: session } = useSession();
@@ -83,8 +86,8 @@ export default function Header() {
 
     return (
         <>
-            {/* Admin secret verification popup — only shown to admin email */}
-            <AdminVerifyModal />
+            {/* Admin secret verification popup — chunk only loaded for admin role users */}
+            {session && isAdmin && <AdminVerifyModal />}
             <header
                 className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${scrolled
                     ? "glass shadow-lg shadow-purple-900/20"

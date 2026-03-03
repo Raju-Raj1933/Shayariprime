@@ -3,7 +3,6 @@
 import { useState, useTransition, useRef, useCallback, useEffect } from "react";
 import { signIn } from "next-auth/react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { motion } from "framer-motion";
 import { Mail, Lock, Eye, EyeOff, Feather, LogIn, UserPlus, User } from "lucide-react";
 import toast from "react-hot-toast";
 import Link from "next/link";
@@ -123,12 +122,7 @@ export default function LoginPageClient() {
 
     return (
         <div className="min-h-[80vh] flex items-center justify-center px-4 py-12">
-            <motion.div
-                initial={{ opacity: 0, y: 24 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.5 }}
-                className="w-full max-w-md"
-            >
+            <div className="w-full max-w-md kv-card-in">
                 <div className="glass rounded-3xl p-8 md:p-10" style={{ border: "1px solid rgba(124,58,237,0.25)" }}>
                     {/* Logo */}
                     <div className="text-center mb-8">
@@ -145,15 +139,13 @@ export default function LoginPageClient() {
 
                     {/* Error */}
                     {error && !verified && (
-                        <motion.div
-                            initial={{ opacity: 0, scale: 0.95 }}
-                            animate={{ opacity: 1, scale: 1 }}
-                            className="mb-6 p-4 rounded-xl text-sm"
+                        <div
+                            className="mb-6 p-4 rounded-xl text-sm login-error-fade"
                             style={{ background: "rgba(236,72,153,0.1)", border: "1px solid rgba(236,72,153,0.25)", color: "#f9a8d4" }}
                             role="alert"
                         >
                             ⚠️ {decodeURIComponent(error)}
-                        </motion.div>
+                        </div>
                     )}
 
                     {/* Tabs */}
@@ -277,7 +269,7 @@ export default function LoginPageClient() {
                 <p className="text-center mt-4 text-xs" style={{ color: "var(--color-text-muted)" }}>
                     By continuing, you agree to Shayariprime&apos;s Terms of Service.
                 </p>
-            </motion.div>
+            </div>
         </div>
     );
 }

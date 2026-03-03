@@ -107,8 +107,9 @@ export default async function HomePage({
             <Sparkles size={14} />
             India&apos;s #1 Shayari Portal
           </div>
-          <h1 className="text-4xl sm:text-5xl md:text-6xl font-bold mb-4 leading-tight">
-            <span className="gradient-text">भावों का संसार</span>
+          {/* LCP element — solid color paints instantly (gradient clip delays browser LCP timing) */}
+          <h1 className="text-4xl sm:text-5xl md:text-6xl font-bold mb-4 leading-tight" style={{ color: "#c084fc" }}>
+            भावों का संसार
           </h1>
           <p className="text-xl text-purple-200/60 font-medium mb-2">
             Discover Poetry That Speaks Your Soul

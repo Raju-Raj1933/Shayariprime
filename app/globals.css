@@ -286,6 +286,11 @@
     animation: kv-slide-down 0.2s ease-out both;
   }
 
+  /* Login page error alert fade — replaces framer-motion scale animation */
+  .login-error-fade {
+    animation: kv-card-in 0.3s ease-out both;
+  }
+
   /* Shimmer — GPU-composited opacity pulse (background-position was not compositable) */
   .shimmer {
     background: linear-gradient(90deg, #1a1030 25%, #2d1f50 50%, #1a1030 75%);

@@ -2,6 +2,7 @@
 
 import crypto from "crypto";
 import jwt from "jsonwebtoken";
+import bcrypt from "bcryptjs";
 import connectDB from "@/app/lib/mongodb";
 import User from "@/app/models/User";
 import { sendVerificationEmail, sendResetPasswordEmail } from "@/app/lib/email";
@@ -72,8 +73,6 @@ export async function registerUser(
         return { success: false, error: "CAPTCHA verification failed. Please try again." };
     }
 
-    const bcrypt = await import("bcryptjs");
-
     try {
         await connectDB();
 
@@ -86,7 +85,8 @@ export async function registerUser(
             };
         }
 
-        const hashedPassword = await bcrypt.hash(password, 12);
+        // Cost factor 10: OWASP recommended for web apps (~250ms on serverless vs 4-9s for 12)
+        const hashedPassword = await bcrypt.hash(password, 10);
 
         const user = await User.create({
             name,
@@ -105,8 +105,9 @@ export async function registerUser(
         );
 
         // Non-blocking: send email and handle failure without crashing registration
-        sendVerificationEmail(email, verificationToken).catch(() => {
-            // Email failure is logged internally by Resend — do not expose details
+        sendVerificationEmail(email, verificationToken).catch((err: unknown) => {
+            // Log to Vercel/server logs for debugging — never expose to client
+            console.error("[email] Failed to send verification email to", email, err);
         });
 
         return { success: true };
@@ -148,8 +149,9 @@ export async function forgotPassword(rawEmail: string): Promise<{ success: boole
         await user.save();
 
         // Non-blocking
-        sendResetPasswordEmail(email, rawToken).catch(() => {
-            // Email failure handled internally
+        sendResetPasswordEmail(email, rawToken).catch((err: unknown) => {
+            // Log to Vercel/server logs for debugging
+            console.error("[email] Failed to send reset email to", email, err);
         });
 
         return genericResponse;
@@ -175,7 +177,7 @@ export async function resetPassword(
         return { success: false, error: passwordCheck.message };
     }
 
-    const bcrypt = await import("bcryptjs");
+    // bcrypt is statically imported at top of file
 
     try {
         await connectDB();
@@ -193,7 +195,8 @@ export async function resetPassword(
             };
         }
 
-        user.password = await bcrypt.hash(newPassword, 12);
+        // Cost factor 10 — consistent with registration
+        user.password = await bcrypt.hash(newPassword, 10);
         user.resetPasswordToken = undefined;
         user.resetPasswordExpires = undefined;
         await user.save();
