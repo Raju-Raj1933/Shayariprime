@@ -66,6 +66,7 @@ export default function LoginPageClient() {
     const googleScriptLoaded = useRef(false);
 
     const siteKey = process.env.NEXT_PUBLIC_RECAPTCHA_SITE_KEY || "";
+    // Trigger Vercel rebuild for NEXT_PUBLIC_ variables
     const googleClientId = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID || "";
 
     // Show verified success toast once on mount
