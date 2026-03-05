@@ -92,7 +92,9 @@ export default function LoginPageClient() {
             window.google.accounts.id.renderButton(googleButtonRef.current, {
                 theme: "filled_black",
                 size: "large",
-                width: "100%",
+                width: googleButtonRef.current.offsetWidth > 0
+                    ? googleButtonRef.current.offsetWidth
+                    : undefined, // Let Google handle it if offsetWidth is 0
                 text: "continue_with",
                 shape: "rectangular",
             });
@@ -107,7 +109,9 @@ export default function LoginPageClient() {
             window.google.accounts.id.renderButton(googleButtonRef.current, {
                 theme: "filled_black",
                 size: "large",
-                width: "100%",
+                width: googleButtonRef.current.offsetWidth > 0
+                    ? googleButtonRef.current.offsetWidth
+                    : undefined, // Let Google handle it if offsetWidth is 0
                 text: "continue_with",
                 shape: "rectangular",
             });
@@ -310,11 +314,13 @@ export default function LoginPageClient() {
                         {/* Google Sign-In button — shown on both tabs */}
                         {googleClientId && (
                             <div className="mb-6">
-                                <div
-                                    ref={googleButtonRef}
-                                    id="google-signin-button"
-                                    className="w-full"
-                                />
+                                <div className="w-full flex justify-center items-center overflow-hidden">
+                                    <div
+                                        ref={googleButtonRef}
+                                        id="google-signin-button"
+                                        className="w-full"
+                                    />
+                                </div>
                                 {/* Divider */}
                                 <div className="flex items-center gap-3 mt-5">
                                     <hr
