@@ -1,4 +1,5 @@
 import { redirect } from "next/navigation";
+import crypto from "crypto";
 import jwt from "jsonwebtoken";
 import type { Metadata } from "next";
 import connectDB from "@/app/lib/mongodb";
@@ -15,57 +16,52 @@ interface VerifyPageProps {
     searchParams: Promise<{ token?: string }>;
 }
 
-export default async function VerifyPage({ searchParams }: VerifyPageProps) {
-    const { token } = await searchParams;
+function hashToken(raw: string): string {
+    return crypto.createHash("sha256").update(raw).digest("hex");
+}
 
-    // Guard: missing token
-    if (!token) {
+export default async function VerifyPage({ searchParams }: VerifyPageProps) {
+    const { token: rawToken } = await searchParams;
+
+    if (!rawToken) {
         redirect("/login?error=Invalid+verification+link");
     }
 
     const jwtSecret = process.env.JWT_SECRET;
-    if (!jwtSecret) {
-        throw new Error("[verify] JWT_SECRET is not set");
-    }
+    if (!jwtSecret) throw new Error("[verify] JWT_SECRET is not set");
 
-    // Verify JWT signature and expiry
-    let payload: jwt.JwtPayload;
-    try {
-        payload = jwt.verify(token, jwtSecret) as jwt.JwtPayload;
-    } catch {
-        // Handles: TokenExpiredError, JsonWebTokenError, NotBeforeError
+    await connectDB();
+
+    // Hash the raw opaque token and look it up in DB (single query with expiry check)
+    const hashedToken = hashToken(rawToken);
+    const user = await User.findOne({
+        verificationToken: hashedToken,
+        verificationTokenExpiry: { $gt: new Date() },
+    }).select("+verificationToken +verificationTokenExpiry");
+
+    if (!user) {
+        // Invalid token, already used, or expired
         redirect("/login?error=Verification+link+is+invalid+or+expired.+Please+register+again.");
     }
 
-    // Validate type claim — reject tokens not issued for email verification
-    if (
-        typeof payload !== "object" ||
-        payload.type !== "email_verify" ||
-        !payload.sub
-    ) {
-        redirect("/login?error=Invalid+verification+link");
-    }
-
-    // Fetch user by userId (sub claim) — never trust email from token
-    await connectDB();
-    const user = await User.findById(payload.sub);
-
-    if (!user) {
-        redirect("/login?error=Account+not+found.+Please+register+again.");
-    }
-
-    // Refinement 3 — Replay Protection:
-    // If already verified, refuse the token and redirect safely.
-    // Prevents token replay abuse even before token expiry.
-    if (user.isVerified) {
+    // Replay protection: already verified (shouldn't normally reach here due to token deletion)
+    if (user.isEmailVerified) {
         redirect("/login?message=already_verified");
     }
 
-    // Mark as verified
-    user.isVerified = true;
+    // Mark verified + delete token (one-time use enforced at DB level)
+    user.isEmailVerified = true;
+    user.verificationToken = undefined;
+    user.verificationTokenExpiry = undefined;
     await user.save();
 
-    // Hand off to client component for auto-login.
-    // Client calls signIn("verify-login") so NextAuth sets HTTP-only cookies correctly.
-    return <VerifyAutoLogin token={token} />;
+    // Generate a SHORT-LIVED auto-login JWT (2 min) just for the client signIn step.
+    // This is separate from the verification token — it only grants a session.
+    const autoLoginToken = jwt.sign(
+        { sub: user._id.toString(), type: "email_verify" },
+        jwtSecret,
+        { expiresIn: "2m" }
+    );
+
+    return <VerifyAutoLogin token={autoLoginToken} />;
 }

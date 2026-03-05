@@ -1,4 +1,4 @@
-"use server";
+// Server-side only — imported by API routes, NOT called as React Server Actions
 
 import crypto from "crypto";
 import jwt from "jsonwebtoken";
@@ -8,23 +8,21 @@ import User from "@/app/models/User";
 import { sendVerificationEmail, sendResetPasswordEmail } from "@/app/lib/email";
 import { verifyRecaptcha } from "@/app/lib/captcha";
 
-// ---------- Startup guards ----------
+// ---------- Guards ----------
 
 function getJwtSecret(): string {
     const secret = process.env.JWT_SECRET;
-    if (!secret) {
-        throw new Error("[auth] JWT_SECRET is not set. Cannot generate verification tokens.");
-    }
+    if (!secret) throw new Error("[auth] JWT_SECRET is not set.");
     return secret;
 }
 
-// ---------- Helpers (kept for password reset) ----------
+// ---------- Helpers ----------
 
 function hashToken(token: string): string {
     return crypto.createHash("sha256").update(token).digest("hex");
 }
 
-function generateSecureToken(): string {
+function generateOpaqueToken(): string {
     return crypto.randomBytes(32).toString("hex");
 }
 
@@ -42,7 +40,7 @@ function isStrongPassword(password: string): { valid: boolean; message: string }
     return { valid: true, message: "" };
 }
 
-// ---------- Register ----------
+// ---------- Register (email + password → verification link) ----------
 
 export async function registerUser(
     rawName: string,
@@ -50,73 +48,123 @@ export async function registerUser(
     rawPassword: string,
     captchaToken: string
 ) {
-    // Sanitize
     const name = rawName.trim().slice(0, 100);
     const email = rawEmail.trim().toLowerCase();
     const password = rawPassword;
 
-    // Validate
-    if (!name || !email || !password) {
+    if (!name || !email || !password)
         return { success: false, error: "All fields are required." };
-    }
-    if (!isValidEmail(email)) {
+    if (!isValidEmail(email))
         return { success: false, error: "Please enter a valid email address." };
-    }
-    const passwordCheck = isStrongPassword(password);
-    if (!passwordCheck.valid) {
-        return { success: false, error: passwordCheck.message };
-    }
 
-    // CAPTCHA
+    const passwordCheck = isStrongPassword(password);
+    if (!passwordCheck.valid)
+        return { success: false, error: passwordCheck.message };
+
     const captchaOk = await verifyRecaptcha(captchaToken);
-    if (!captchaOk) {
+    if (!captchaOk)
         return { success: false, error: "CAPTCHA verification failed. Please try again." };
-    }
 
     try {
         await connectDB();
 
-        // Generic message to prevent user enumeration
-        const existing = await User.findOne({ email });
-        if (existing) {
-            return {
-                success: true,
-                message: "If this email is not registered, you will receive a verification link shortly.",
-            };
+        interface ExistingUser {
+            _id: { toString(): string };
+            isEmailVerified: boolean;
+            verificationTokenExpiry?: Date;
+            provider: string;
         }
 
-        // Cost factor 10: OWASP recommended for web apps (~250ms on serverless vs 4-9s for 12)
+        // Single lookup — select verificationTokenExpiry for resend check
+        const existing = await User.findOne({ email })
+            .select("+verificationToken +verificationTokenExpiry")
+            .lean<ExistingUser>();
+
+        if (existing) {
+            // SCENARIO 2 — Already verified: explicit error, no email sent
+            if (existing.isEmailVerified) {
+                return {
+                    success: false,
+                    error: "This email is already registered. Please try with another email.",
+                };
+            }
+
+            // Google user trying to re-register via email
+            if (existing.provider === "google") {
+                return {
+                    success: false,
+                    error: "This email is registered via Google Sign-In. Please use Google to log in.",
+                };
+            }
+
+            // SCENARIO 1 — Unverified: check if token has expired before resending
+            const tokenExpired =
+                !existing.verificationTokenExpiry ||
+                existing.verificationTokenExpiry < new Date();
+
+            if (!tokenExpired) {
+                // Token still valid — NO DB write, just inform user
+                return {
+                    success: false,
+                    error: "A verification link was already sent. Please check your inbox (or spam).",
+                };
+            }
+
+            // Token expired — generate new opaque token, update in DB, resend email
+            const rawToken = generateOpaqueToken();
+            const hashedToken = hashToken(rawToken);
+            const newExpiry = new Date(Date.now() + 15 * 60 * 1000);
+            const hashedPassword = await bcrypt.hash(password, 10);
+
+            // updateOne: minimal write — no full document reload
+            await User.updateOne(
+                { _id: existing._id },
+                {
+                    verificationToken: hashedToken,
+                    verificationTokenExpiry: newExpiry,
+                    password: hashedPassword,
+                }
+            );
+
+            try {
+                await sendVerificationEmail(email, rawToken);
+            } catch {
+                // Email failure is non-fatal — user can retry
+            }
+
+            return { success: true };
+        }
+
+        // New user — create with opaque verification token
+        const rawToken = generateOpaqueToken();
+        const hashedToken = hashToken(rawToken);
+        const tokenExpiry = new Date(Date.now() + 15 * 60 * 1000);
         const hashedPassword = await bcrypt.hash(password, 10);
 
-        const user = await User.create({
+        await User.create({
             name,
             email,
             password: hashedPassword,
             role: "user",
-            isVerified: false,
+            isEmailVerified: false,
+            provider: "credentials",
+            verificationToken: hashedToken,
+            verificationTokenExpiry: tokenExpiry,
         });
 
-        // Generate stateless JWT verification token
-        // Payload: { sub: userId, type: "email_verify" }
-        const verificationToken = jwt.sign(
-            { sub: user._id.toString(), type: "email_verify" },
-            getJwtSecret(),
-            { expiresIn: "15m" }
-        );
-
-        // Awaited: must complete before returning so Vercel doesn't kill the function
-        // before Resend receives the HTTP call (fire-and-forget is unsafe on serverless)
         try {
-            await sendVerificationEmail(email, verificationToken);
-        } catch (err) {
-            // Log error but still return success — user can re-request verification
-            console.error("[email] Failed to send verification email to", email, err);
+            await sendVerificationEmail(email, rawToken);
+        } catch {
+            // Non-fatal
         }
 
         return { success: true };
     } catch (error) {
         if ((error as { code?: number })?.code === 11000) {
-            return { success: true }; // Same generic response for race conditions
+            return {
+                success: false,
+                error: "This email is already registered. Please try with another email.",
+            };
         }
         return { success: false, error: "Registration failed. Please try again." };
     }
@@ -127,13 +175,11 @@ export async function registerUser(
 export async function forgotPassword(rawEmail: string): Promise<{ success: boolean; error?: string }> {
     const email = rawEmail.trim().toLowerCase();
 
-    if (!isValidEmail(email)) {
+    if (!isValidEmail(email))
         return { success: false, error: "Please enter a valid email address." };
-    }
 
-    // Always return same message to prevent user enumeration
     const genericResponse = {
-        success: true,
+        success: true as const,
         message: "If an account with this email exists, we've sent a reset link.",
     };
 
@@ -143,26 +189,23 @@ export async function forgotPassword(rawEmail: string): Promise<{ success: boole
         const user = await User.findOne({ email });
         if (!user) return genericResponse;
 
-        const rawToken = generateSecureToken();
+        const rawToken = generateOpaqueToken();
         const hashedToken = hashToken(rawToken);
-        const expires = new Date(Date.now() + 30 * 60 * 1000); // 30 minutes
+        const expires = new Date(Date.now() + 30 * 60 * 1000);
 
         user.resetPasswordToken = hashedToken;
         user.resetPasswordExpires = expires;
         await user.save();
 
-        // Awaited: must complete before returning so Vercel doesn't kill the function
-        // before Resend receives the HTTP call (fire-and-forget is unsafe on serverless)
         try {
             await sendResetPasswordEmail(email, rawToken);
-        } catch (err) {
-            console.error("[email] Failed to send reset email to", email, err);
-            // Still return genericResponse — don't reveal failure to prevent enumeration
+        } catch {
+            // Non-fatal
         }
 
         return genericResponse;
     } catch {
-        return genericResponse; // Never reveal error details
+        return genericResponse;
     }
 }
 
@@ -174,16 +217,12 @@ export async function resetPassword(
     confirmPassword: string
 ): Promise<{ success: boolean; error?: string }> {
     if (!token) return { success: false, error: "Invalid reset link." };
-    if (newPassword !== confirmPassword) {
+    if (newPassword !== confirmPassword)
         return { success: false, error: "Passwords do not match." };
-    }
 
     const passwordCheck = isStrongPassword(newPassword);
-    if (!passwordCheck.valid) {
+    if (!passwordCheck.valid)
         return { success: false, error: passwordCheck.message };
-    }
-
-    // bcrypt is statically imported at top of file
 
     try {
         await connectDB();
@@ -201,7 +240,6 @@ export async function resetPassword(
             };
         }
 
-        // Cost factor 10 — consistent with registration
         user.password = await bcrypt.hash(newPassword, 10);
         user.resetPasswordToken = undefined;
         user.resetPasswordExpires = undefined;
@@ -212,3 +250,5 @@ export async function resetPassword(
         return { success: false, error: "Password reset failed. Please try again." };
     }
 }
+
+

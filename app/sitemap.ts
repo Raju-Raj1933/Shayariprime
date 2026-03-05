@@ -6,17 +6,16 @@ const BASE_URL = "https://shayariprime.com";
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
 
     const staticRoutes: MetadataRoute.Sitemap = [
-        { url: BASE_URL, lastModified: new Date(), changeFrequency: "daily", priority: 1.0 },
-        { url: `${BASE_URL}/kavita`, lastModified: new Date(), changeFrequency: "daily", priority: 0.9 },
-        { url: `${BASE_URL}/category/sad`, lastModified: new Date(), changeFrequency: "daily", priority: 0.8 },
-        { url: `${BASE_URL}/category/romantic`, lastModified: new Date(), changeFrequency: "daily", priority: 0.8 },
-        { url: `${BASE_URL}/category/motivational`, lastModified: new Date(), changeFrequency: "daily", priority: 0.8 },
-        { url: `${BASE_URL}/about`, lastModified: new Date(), changeFrequency: "monthly", priority: 0.6 },
-        { url: `${BASE_URL}/contact`, lastModified: new Date(), changeFrequency: "monthly", priority: 0.6 },
-        { url: `${BASE_URL}/privacy-policy`, lastModified: new Date(), changeFrequency: "monthly", priority: 0.6 },
-        { url: `${BASE_URL}/disclaimer`, lastModified: new Date(), changeFrequency: "monthly", priority: 0.6 },
-        { url: `${BASE_URL}/terms-and-conditions`, lastModified: new Date(), changeFrequency: "monthly", priority: 0.6 },
-        { url: `${BASE_URL}/login`, lastModified: new Date(), changeFrequency: "monthly", priority: 0.3 },
+        { url: BASE_URL, changeFrequency: "daily", priority: 1.0 },
+        { url: `${BASE_URL}/kavita`, changeFrequency: "daily", priority: 0.9 },
+        { url: `${BASE_URL}/category/sad`, changeFrequency: "weekly", priority: 0.8 },
+        { url: `${BASE_URL}/category/romantic`, changeFrequency: "weekly", priority: 0.8 },
+        { url: `${BASE_URL}/category/motivational`, changeFrequency: "weekly", priority: 0.8 },
+        { url: `${BASE_URL}/about`, changeFrequency: "yearly", priority: 0.5 },
+        { url: `${BASE_URL}/contact`, changeFrequency: "yearly", priority: 0.5 },
+        { url: `${BASE_URL}/privacy-policy`, changeFrequency: "yearly", priority: 0.4 },
+        { url: `${BASE_URL}/disclaimer`, changeFrequency: "yearly", priority: 0.4 },
+        { url: `${BASE_URL}/terms-and-conditions`, changeFrequency: "yearly", priority: 0.4 },
     ];
 
     // Dynamic post routes

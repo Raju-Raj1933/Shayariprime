@@ -12,6 +12,7 @@ import {
 import { useSession } from "next-auth/react";
 import toast from "react-hot-toast";
 import { likePost } from "@/app/actions/postActions";
+import { useViewTracker } from "@/app/hooks/useViewTracker";
 import type { PostData } from "@/app/actions/postActions";
 
 // Lazy load CommentsSection to save ~40-50KB of JS upfront
@@ -57,6 +58,9 @@ export default function ShayariCard({
         categoryConfig[post.category as keyof typeof categoryConfig] ??
         categoryConfig.sad;
 
+    // Instagram-style view tracking — 50% visibility for 2 continuous seconds
+    const cardRef = useViewTracker(post._id);
+
     // ── Like sound ──────────────────────────────────────────────────────────
     const playLikeSound = useCallback(() => {
         try {
@@ -74,6 +78,8 @@ export default function ShayariCard({
             osc.stop(ctx.currentTime + 0.5);
         } catch { /* AudioContext not supported */ }
     }, []);
+
+
 
     // ── Like ────────────────────────────────────────────────────────────────
     const handleLike = async () => {
@@ -118,6 +124,7 @@ export default function ShayariCard({
 
     return (
         <div
+            ref={cardRef}
             className={`flex flex-col h-full relative kv-card-in ${showComments ? 'z-50' : 'z-0'}`}
             style={{ animationDelay: `${Math.min(index * 80, 500)}ms` }}
             aria-label={`${post.type === "kavita" ? "Kavita" : "Shayari"}: ${post.title}`}
