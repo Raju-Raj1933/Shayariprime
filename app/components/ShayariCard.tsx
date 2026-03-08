@@ -37,8 +37,8 @@ const categoryConfig = {
  */
 function getCloudinaryUrl(url: string): string {
     if (!url || !url.includes("cloudinary.com")) return url;
-    if (url.includes("w_400,h_360")) return url;
-    return url.replace("/upload/", "/upload/w_400,h_360,c_pad,b_auto,f_auto,q_auto/");
+    if (url.includes("w_600")) return url;
+    return url.replace("/upload/", "/upload/w_600,f_auto,q_auto/");
 }
 
 export default function ShayariCard({
@@ -134,10 +134,9 @@ export default function ShayariCard({
             ════════════════════════════════ */}
             {/* Outer gradient border wrapper */}
             <div className="card-image-gradient-border rounded-2xl group overflow-hidden">
-                {/* inner wrapper — aspect-[10/9] matches Cloudinary's 400×360 delivery exactly */}
+                {/* inner wrapper — mobile: 400×360 ratio, desktop: fixed 500px height */}
                 <div
-                    className="relative overflow-hidden rounded-[14px] bg-[#0f0a1e] w-full"
-                    style={{ aspectRatio: "400 / 360" }}
+                    className="relative overflow-hidden rounded-[14px] bg-[#0f0a1e] w-full aspect-[400/360] md:aspect-auto md:h-[500px]"
                 >
                     <Image
                         src={getCloudinaryUrl(post.image)}

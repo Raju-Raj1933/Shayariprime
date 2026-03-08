@@ -10,6 +10,7 @@
     "seed": "npx ts-node --esm --project tsconfig.json scripts/seed.ts"
   },
   "dependencies": {
+    "@next/third-parties": "^16.1.6",
     "@types/bcryptjs": "^2.4.6",
     "@types/jsonwebtoken": "^9.0.10",
     "@types/react-google-recaptcha": "^2.1.9",

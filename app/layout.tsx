@@ -4,6 +4,7 @@ import Header from "@/app/components/Header";
 import Footer from "@/app/components/Footer";
 import SessionWrapper from "@/app/components/SessionWrapper";
 import { Toaster } from "react-hot-toast";
+import { GoogleAnalytics } from "@next/third-parties/google";
 
 export const metadata: Metadata = {
   title: {
@@ -119,6 +120,7 @@ export default function RootLayout({
             }}
           />
         </SessionWrapper>
+        <GoogleAnalytics gaId="G-G443K3QYZ1" />
       </body>
     </html>
   );

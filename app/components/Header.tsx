@@ -105,7 +105,7 @@ export default function Header() {
                             <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-purple-600 to-pink-500 flex items-center justify-center shadow-lg group-hover:shadow-purple-500/40 transition-shadow">
                                 <Feather size={18} className="text-white" />
                             </div>
-                            <span className="font-bold text-xl md:text-2xl gradient-text tracking-tight">
+                            <span className="font-bold text-[28px] md:text-[32px] gradient-text tracking-tight">
                                 Shayariprime
                             </span>
                         </Link>

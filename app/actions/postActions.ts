@@ -34,14 +34,6 @@ async function uploadImageToCloudinary(imageFile: File) {
         folder: "kavitaworld",
         transformation: [
             { width: 800, height: 600, crop: "fill", quality: 80 },
-            {
-                overlay: { font_family: "Arial", font_size: 22, font_weight: "bold", text: "shayariprime.com" },
-                gravity: "south_east",
-                x: 12,
-                y: 10,
-                color: "white",
-                opacity: 70,
-            },
         ],
     });
 }
