@@ -204,7 +204,7 @@ export default function KavitaCard({
                                 background: "rgba(0,0,0,0.38)",
                                 padding: "4px 16px",
                                 borderRadius: "6px",
-                                border: "1px solid rgba(255,255,255,0.18)",
+                                border: "1px solid rgba(255,255,255,0.28)",
                             }}
                         >
                             shayariprime.com

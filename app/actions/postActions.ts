@@ -13,14 +13,17 @@ cloudinary.config({
     api_secret: process.env.CLOUDINARY_API_SECRET,
 });
 
-// Generate slug from title
+// Generate slug from title (supports Hindi and other non-ASCII scripts)
 function generateSlug(title: string): string {
-    return title
+    const slug = title
         .toLowerCase()
-        .replace(/[^\w\s-]/g, "")
+        .replace(/[^\p{L}\p{N}\s-]/gu, "")
         .replace(/[\s_-]+/g, "-")
         .replace(/^-+|-+$/g, "")
         .substring(0, 80);
+
+    // Fallback: if title was all special chars/emojis, use timestamp
+    return slug || `post-${Date.now()}`;
 }
 
 // Reusable cloudniary upload
@@ -33,7 +36,7 @@ async function uploadImageToCloudinary(imageFile: File) {
     return await cloudinary.uploader.upload(dataUri, {
         folder: "kavitaworld",
         transformation: [
-            { width: 800, height: 600, crop: "fill", quality: 80 },
+            { width: 800, height: 600, crop: "fill", gravity: "auto", quality: 80 },
         ],
     });
 }

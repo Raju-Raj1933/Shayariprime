@@ -38,7 +38,7 @@ const categoryConfig = {
 function getCloudinaryUrl(url: string): string {
     if (!url || !url.includes("cloudinary.com")) return url;
     if (url.includes("w_600")) return url;
-    return url.replace("/upload/", "/upload/w_600,f_auto,q_auto/");
+    return url.replace("/upload/", "/upload/w_600,c_fill,g_auto,f_auto,q_auto/");
 }
 
 export default function ShayariCard({
@@ -142,7 +142,7 @@ export default function ShayariCard({
                         src={getCloudinaryUrl(post.image)}
                         alt={post.title}
                         fill
-                        className="object-cover object-center group-hover:scale-105 transition-transform duration-500"
+                        className="object-cover object-top group-hover:scale-105 transition-transform duration-500"
                         sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
                         priority={index < 2}
                         fetchPriority={index < 2 ? "high" : "auto"}
@@ -169,27 +169,26 @@ export default function ShayariCard({
                         </div>
                     </div>
 
-                    {/* ── Diagonal watermark — dark pill so always visible ── */}
+                    {/* ── Bottom-center watermark ── */}
                     <div
-                        className="absolute inset-0 flex items-center justify-center select-none pointer-events-none"
+                        className="absolute bottom-0 left-0 right-0 flex justify-center select-none pointer-events-none"
                         aria-hidden="true"
-                        style={{ zIndex: 10 }}
+                        style={{ zIndex: 10, paddingBottom: "5px" }}
                     >
                         <span
                             style={{
                                 fontSize: "14px",
                                 fontWeight: 700,
-                                color: "rgba(255,255,255,0.92)",
+                                color: "rgba(255,255,255,0.55)",
                                 letterSpacing: "0.12em",
-                                transform: "rotate(-30deg)",
                                 whiteSpace: "nowrap",
                                 userSelect: "none",
                                 textTransform: "uppercase",
-                                background: "rgba(0,0,0,0.38)",
+                                background: "rgba(0,0,0,0.28)",
                                 padding: "4px 16px",
                                 borderRadius: "6px",
-                                backdropFilter: "blur(3px)",
-                                border: "1px solid rgba(255,255,255,0.18)",
+                                backdropFilter: "blur(2px)",
+                                border: "1px solid rgba(255,255,255,0.10)",
                             }}
                         >
                             shayariprime.com
